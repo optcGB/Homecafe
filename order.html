@@ -7,44 +7,132 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-    <style>
-        /* 기존 디자인 유지 */
-        body { font-family: 'Apple SD Gothic Neo', sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; display: flex; height: 100vh; overflow: hidden; }
-        .menu-container { flex: 2; padding: 20px; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; overflow: hidden; }
-        .header-title { font-size: 24px; font-weight: bold; color: #4a3b32; margin-bottom: 20px; flex-shrink: 0; }
-        .category-nav { display: flex; gap: 10px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; white-space: nowrap; flex-shrink: 0; scrollbar-width: thin; }
-        .category-btn { padding: 8px 18px; border-radius: 20px; border: 1px solid #ddd; background-color: white; cursor: pointer; color: #555; }
-        .category-btn.active { background-color: #4a3b32; color: white; font-weight: bold; }
-        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; overflow-y: auto; flex-grow: 1; padding-bottom: 20px; align-items: start; align-content: start; }
-        .menu-item { background: white; border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; border: 1px solid #eee; }
-        .menu-img { width: 100%; height: 130px; border-radius: 10px; object-fit: cover; background-color: #eee; margin-bottom: 5px;}
-        .menu-name { font-weight: bold; color: #333; }
-        .cart-container { flex: 1; background: white; padding: 20px; border-left: 1px solid #ddd; display: flex; flex-direction: column; max-width: 380px; height: 100vh; box-sizing: border-box; }
-        .cart-list { flex: 1; overflow-y: auto; margin-bottom: 20px; }
-        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .cart-item-name { font-weight: bold; }
-        .cart-item-option { font-size: 0.85em; color: #666; }
-        .cart-btn-remove { background: #ff6b6b; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
-        .total-section { background: #f8f9fa; padding: 20px; border-radius: 10px; }
-        .total-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold; }
-        .order-btn { width: 100%; padding: 15px; background-color: #4a3b32; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+<style>
+        /* [패치] 사파리 호환성을 위한 높이 설정 수정 */
+        body { 
+            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #f8f9fa; 
+            display: flex; 
+            /* 모바일 사파리 주소창 대응 (dvh가 지원되면 쓰고, 아니면 vh) */
+            height: 100vh; 
+            height: 100dvh; 
+            overflow: hidden; 
+        }
+        
+        /* 왼쪽: 메뉴 영역 */
+        .menu-container { 
+            flex: 2; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100%; /* 부모 높이 상속 */
+            box-sizing: border-box; 
+            overflow: hidden; 
+            min-height: 0; /* ✨ 사파리 버그 수정: 최소 높이 지정 */
+        }
 
-        /* 모달 스타일 */
+        .header-title { font-size: 24px; font-weight: bold; color: #4a3b32; margin-bottom: 20px; flex-shrink: 0; }
+        
+        .category-nav { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 15px; 
+            overflow-x: auto; 
+            padding-bottom: 5px; 
+            white-space: nowrap; 
+            flex-shrink: 0; 
+            -webkit-overflow-scrolling: touch; /* 아이폰 부드러운 스크롤 */
+            scrollbar-width: thin;
+        }
+        .category-nav::-webkit-scrollbar { height: 6px; }
+        .category-nav::-webkit-scrollbar-thumb { background: #d4a373; border-radius: 10px; }
+        .category-btn { padding: 8px 18px; border-radius: 20px; border: 1px solid #ddd; background-color: white; cursor: pointer; font-size: 1rem; color: #555; transition: all 0.2s; }
+        .category-btn.active { background-color: #4a3b32; color: white; border-color: #4a3b32; font-weight: bold; }
+
+        /* 메뉴 리스트 */
+        .menu-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
+            gap: 20px; 
+            overflow-y: auto; 
+            flex-grow: 1; 
+            padding-right: 10px; 
+            padding-bottom: 20px;
+            align-items: start; 
+            align-content: start; 
+            min-height: 0; /* ✨ 사파리 버그 수정 */
+            -webkit-overflow-scrolling: touch; /* 아이폰 부드러운 스크롤 */
+        }
+        .menu-item { background: white; border-radius: 15px; padding: 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s; border: 1px solid #eee; }
+        .menu-img { width: 100%; height: 130px; border-radius: 10px; margin-bottom: 10px; object-fit: cover; background-color: #eee; }
+        .menu-name { font-weight: bold; margin-top: 5px; font-size: 1.1em; word-break: keep-all; color: #333; }
+
+        /* 오른쪽: 장바구니 영역 */
+        .cart-container { 
+            flex: 1; 
+            background: white; 
+            padding: 20px; 
+            border-left: 1px solid #ddd; 
+            display: flex; 
+            flex-direction: column; 
+            max-width: 380px; 
+            height: 100%; /* 부모 높이 상속 */
+            box-sizing: border-box; 
+            min-height: 0; /* ✨ 사파리 버그 수정 */
+        }
+        .cart-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; border-bottom: 2px solid #4a3b32; padding-bottom: 10px; flex-shrink: 0; }
+        
+        /* 장바구니 리스트 (여기가 문제였음) */
+        .cart-list { 
+            flex: 1; 
+            overflow-y: auto; 
+            margin-bottom: 20px; 
+            min-height: 0; /* ✨ 핵심 수정: 사파리에서 내용물이 보여도 스크롤 영역을 잡기 위해 필수 */
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+        
+        .cart-item-info { 
+            flex: 1; 
+            min-width: 0; /* ✨ 핵심 수정: 텍스트가 길어질 때 사파리에서 레이아웃 깨짐 방지 */
+            padding-right: 10px;
+        }
+        
+        .cart-item-name { font-weight: bold; font-size: 1.0em; display: block; }
+        .cart-item-option { font-size: 0.85em; color: #666; margin-top: 2px; display: block; } 
+        
+        .cart-btn-remove { 
+            background: #ff6b6b; color: white; border: none; padding: 6px 12px; 
+            border-radius: 5px; cursor: pointer; font-size: 0.85em; 
+            flex-shrink: 0; /* 버튼이 찌그러지지 않게 고정 */
+        }
+
+        .total-section { background: #f8f9fa; padding: 20px; border-radius: 10px; flex-shrink: 0; }
+        .total-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 1.2em; font-weight: bold; color: #555; }
+        .order-btn { width: 100%; padding: 15px; background-color: #4a3b32; color: white; border: none; border-radius: 10px; font-size: 1.1em; cursor: pointer; font-weight: bold; transition: background 0.3s; }
+
+        /* 팝업(모달) 스타일 */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-box { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 350px; text-align: center; }
-        .modal-title { font-size: 1.5em; font-weight: bold; margin-bottom: 20px; }
+        .modal-box { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .modal-title { font-size: 1.5em; font-weight: bold; margin-bottom: 20px; color: #4a3b32; }
         .option-group { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
-        .option-btn { flex: 1; padding: 15px; border-radius: 10px; border: 2px solid #eee; background: #fff; cursor: pointer; font-weight: bold; color: #aaa; }
+        .option-btn { flex: 1; padding: 15px; border-radius: 10px; border: 2px solid #eee; background: #fff; font-size: 1.1em; font-weight: bold; cursor: pointer; color: #aaa; }
         .option-btn.selected { border-color: #4a3b32; color: #4a3b32; background-color: #f8f9fa; }
         .modal-actions { display: flex; gap: 10px; }
-        .modal-btn-close, .modal-btn-add { flex: 1; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; border: none; }
-        .modal-btn-close { background: #eee; }
-        .modal-btn-add { background: #4a3b32; color: white; }
-        
+        .modal-btn-close { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc; background: #eee; cursor: pointer; font-weight: bold; }
+        .modal-btn-add { flex: 2; padding: 12px; border-radius: 8px; border: none; background: #4a3b32; color: white; cursor: pointer; font-weight: bold; }
+        .modal-btn-add:disabled { background: #ccc; cursor: not-allowed; }
+
         @media (max-width: 768px) {
-             body { flex-direction: column; height: auto; overflow: auto; }
-            .menu-container { height: 65vh; }
-            .cart-container { max-width: none; border-left: none; border-top: 1px solid #ddd; height: 35vh; }
+            body { flex-direction: column; height: auto; overflow: auto; }
+            .menu-container { height: 60vh; min-height: 400px; } /* 최소 높이 확보 */
+            .cart-container { max-width: none; border-left: none; border-top: 1px solid #ddd; height: 40vh; min-height: 250px; }
+            
+            /* 모바일에서 버튼 잘 눌리게 패딩 조정 */
+            .category-nav { padding-bottom: 10px; }
         }
     </style>
 </head>
@@ -249,4 +337,5 @@
     </script>
 </body>
 </html>
+
 
