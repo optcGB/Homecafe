@@ -2,151 +2,90 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>영광&마리아 카페 (Home Cafe)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"> 
+    <title>영광&마리아 홈카페 (HomeCafe)</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-<style>
-        /* 1. 기본 레이아웃 (iOS 사파리 주소창 대응) */
+    <style>
+        /* 1. 기본 설정 */
         body { 
             font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            background-color: #f8f9fa; 
-            display: flex; 
-            /* 100vh 대신 100dvh를 써야 아이폰 주소창에 안 가려짐 */
-            height: 100vh; 
-            height: 100dvh; 
-            overflow: hidden; /* 전체 화면 스크롤 막음 (앱처럼 동작) */
-        }
-        
-        /* 2. 왼쪽: 메뉴 영역 */
-        .menu-container { 
-            flex: 2; 
-            padding: 20px; 
-            display: flex; 
-            flex-direction: column; 
-            height: 100%; 
-            box-sizing: border-box; 
+            margin: 0; padding: 0; background-color: #f8f9fa; 
+            display: flex; height: 100vh; height: 100dvh; /* 아이폰 주소창 대응 */
             overflow: hidden; 
-            min-height: 0; 
+        }
+
+        /* 2. 메뉴 영역 (모바일에서 화면 꽉 채움) */
+        .menu-container { 
+            flex: 2; padding: 20px; display: flex; flex-direction: column; 
+            height: 100%; box-sizing: border-box; overflow: hidden; min-height: 0;
         }
 
         .header-title { font-size: 24px; font-weight: bold; color: #4a3b32; margin-bottom: 20px; flex-shrink: 0; }
         
         .category-nav { 
-            display: flex; 
-            gap: 10px; 
-            margin-bottom: 15px; 
-            overflow-x: auto; 
-            padding-bottom: 5px; 
-            white-space: nowrap; 
-            flex-shrink: 0; 
+            display: flex; gap: 10px; margin-bottom: 15px; overflow-x: auto; 
+            padding-bottom: 5px; white-space: nowrap; flex-shrink: 0; 
             -webkit-overflow-scrolling: touch; 
         }
-        .category-nav::-webkit-scrollbar { display: none; } /* 깔끔하게 스크롤바 숨김 */
-        
+        .category-nav::-webkit-scrollbar { display: none; }
         .category-btn { padding: 8px 18px; border-radius: 20px; border: 1px solid #ddd; background-color: white; cursor: pointer; font-size: 1rem; color: #555; transition: all 0.2s; }
         .category-btn.active { background-color: #4a3b32; color: white; border-color: #4a3b32; font-weight: bold; }
 
         .menu-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* 모바일에서 더 잘 보이게 조정 */
-            gap: 15px; 
-            overflow-y: auto; 
-            flex-grow: 1; 
-            padding-bottom: 80px; /* 맨 아래 메뉴가 잘리지 않게 여유 공간 */
-            align-items: start; 
-            align-content: start; 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
+            gap: 15px; overflow-y: auto; flex-grow: 1; 
+            padding-bottom: 100px; /* ✨ 하단 플로팅 버튼에 가려지지 않게 여백 추가 */
+            align-items: start; align-content: start; 
             -webkit-overflow-scrolling: touch;
         }
         .menu-item { background: white; border-radius: 15px; padding: 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); cursor: pointer; border: 1px solid #eee; }
         .menu-img { width: 100%; height: 110px; border-radius: 10px; margin-bottom: 10px; object-fit: cover; background-color: #eee; }
         .menu-name { font-weight: bold; margin-top: 5px; font-size: 1.05em; word-break: keep-all; color: #333; }
 
-        /* 3. 오른쪽: 장바구니 영역 (문제의 원인 해결) */
+        /* 3. 장바구니 영역 (PC에서는 우측, 모바일에서는 슬라이딩) */
         .cart-container { 
-            flex: 1; 
-            background: white; 
-            padding: 20px; 
-            border-left: 1px solid #ddd; 
-            display: flex; 
-            flex-direction: column; 
-            max-width: 380px; 
-            height: 100%; 
-            box-sizing: border-box; 
-            z-index: 10;
+            flex: 1; background: white; padding: 20px; 
+            border-left: 1px solid #ddd; display: flex; flex-direction: column; 
+            max-width: 380px; height: 100%; box-sizing: border-box; z-index: 2000;
         }
         
+        /* 모바일용 닫기 버튼 (PC에선 숨김) */
+        .mobile-cart-header { display: none; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .mobile-cart-close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 5px; }
+
         .cart-title { font-size: 20px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #4a3b32; padding-bottom: 10px; flex-shrink: 0; }
         
-        /* [핵심 수정] 장바구니 리스트 스크롤 영역 */
-        .cart-list { 
-            flex: 1; 
-            overflow-y: auto; 
-            margin-bottom: 15px; 
-            -webkit-overflow-scrolling: touch; /* 아이폰 부드러운 스크롤 */
-            padding-right: 5px;
-        }
-
-        /* [핵심 수정] 장바구니 아이템이 찌그러지지 않게 강제 설정 */
-        .cart-item { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 12px 0; 
-            border-bottom: 1px solid #eee; 
-            
-            /* ✨ 사파리 버그 해결 코드 ✨ */
-            flex-shrink: 0; /* 절대 줄어들지 마라 */
-            min-height: 50px; /* 최소 높이 확보 */
-        }
-        
-        .cart-item-info { flex: 1; padding-right: 10px; }
+        .cart-list { flex: 1; overflow-y: auto; margin-bottom: 15px; -webkit-overflow-scrolling: touch; padding-right: 5px; min-height: 0; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; flex-shrink: 0; min-height: 50px; }
+        .cart-item-info { flex: 1; padding-right: 10px; min-width: 0; }
         .cart-item-name { font-weight: bold; font-size: 1.0em; display: block; }
         .cart-item-option { font-size: 0.85em; color: #888; margin-top: 4px; display: block; } 
-        
-        .cart-btn-remove { 
-            background: #ff6b6b; color: white; border: none; padding: 8px 12px; 
-            border-radius: 6px; cursor: pointer; font-size: 0.85em; 
-            flex-shrink: 0; /* 버튼도 찌그러지지 않게 */
-        }
+        .cart-btn-remove { background: #ff6b6b; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em; flex-shrink: 0; }
 
         .total-section { background: #f8f9fa; padding: 15px; border-radius: 10px; flex-shrink: 0; }
         .total-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 1.1em; font-weight: bold; color: #555; }
         .order-btn { width: 100%; padding: 15px; background-color: #4a3b32; color: white; border: none; border-radius: 10px; font-size: 1.1em; cursor: pointer; font-weight: bold; }
 
-        /* 4. 모바일 반응형 (화면 분할 비율 최적화) */
-        @media (max-width: 768px) {
-            body { 
-                flex-direction: column; 
-                /* 모바일에서도 스크롤 막고 내부에서 스크롤 되게 설정 */
-                height: 100dvh; 
-                overflow: hidden; 
-            }
-            
-            /* 메뉴판: 화면의 60% 차지 */
-            .menu-container { 
-                height: 60%; 
-                flex: none; /* flex 비율 무시하고 높이 강제 적용 */
-                border-bottom: 1px solid #ddd;
-                padding: 15px;
-            }
-            
-            /* 장바구니: 화면의 40% 차지 */
-            .cart-container { 
-                height: 40%; 
-                flex: none; /* flex 비율 무시하고 높이 강제 적용 */
-                border-left: none; 
-                border-top: 1px solid #ddd; 
-                padding: 15px;
-                box-shadow: 0 -5px 15px rgba(0,0,0,0.05); /* 구분감 추가 */
-            }
+        /* ✨ 4. 모바일 하단 플로팅 버튼 (장바구니 열기 버튼) */
+        .floating-bar {
+            display: none; /* PC에선 숨김 */
+            position: fixed; bottom: 20px; left: 20px; right: 20px;
+            background-color: #4a3b32; color: white;
+            padding: 15px 25px; border-radius: 50px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            z-index: 1500;
+            justify-content: space-between; align-items: center;
+            font-weight: bold; font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
         }
+        .floating-bar:active { transform: scale(0.98); }
+        .floating-badge { background: #ff6b6b; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.9em; margin-left: 5px; }
 
-        /* 팝업 스타일 (변경 없음) */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        /* 팝업 스타일들 */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; justify-content: center; align-items: center; }
         .modal-box { background: white; padding: 30px; border-radius: 15px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .modal-title { font-size: 1.4em; font-weight: bold; margin-bottom: 20px; color: #4a3b32; }
         .option-group { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
@@ -156,11 +95,50 @@
         .modal-btn-close { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc; background: #eee; cursor: pointer; font-weight: bold; }
         .modal-btn-add { flex: 2; padding: 12px; border-radius: 8px; border: none; background: #4a3b32; color: white; cursor: pointer; font-weight: bold; }
         .modal-btn-add:disabled { background: #ccc; cursor: not-allowed; }
+
+        /* ✨ 5. 모바일 반응형 설정 (슬라이딩 효과 적용) */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            
+            /* 메뉴판 화면 꽉 채우기 */
+            .menu-container { height: 100%; flex: 1; border-bottom: none; padding-bottom: 0; }
+            .menu-grid { padding-bottom: 100px; } /* 버튼 가림 방지 */
+
+            /* 장바구니: 평소엔 숨겨져 있다가 올라옴 */
+            .cart-container { 
+                position: fixed; bottom: 0; left: 0; right: 0;
+                height: 85vh; /* 화면의 85%까지 올라옴 */
+                max-width: none;
+                border-radius: 20px 20px 0 0; /* 위쪽 둥글게 */
+                box-shadow: 0 -5px 30px rgba(0,0,0,0.2);
+                transform: translateY(110%); /* 화면 아래로 숨김 */
+                transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1); /* 부드러운 애니메이션 */
+                padding-bottom: env(safe-area-inset-bottom); /* 아이폰 하단 바 대응 */
+            }
+            
+            /* 장바구니 열렸을 때 */
+            .cart-container.open { transform: translateY(0); }
+
+            /* PC용 타이틀 숨기고 모바일용 헤더 표시 */
+            .cart-title { display: none; }
+            .mobile-cart-header { display: flex; }
+
+            /* 하단 플로팅 버튼 보이기 */
+            .floating-bar { display: flex; padding-bottom: max(15px, env(safe-area-inset-bottom)); }
+            
+            /* 장바구니 배경 어둡게 (오버레이) */
+            .cart-overlay {
+                display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.5); z-index: 1900;
+                opacity: 0; transition: opacity 0.3s;
+            }
+            .cart-overlay.show { display: block; opacity: 1; }
+        }
     </style>
 </head>
 <body>
     <div class="menu-container">
-        <div class="header-title">☕ 영광&마리아 카페</div>
+        <div class="header-title">☕ 영광&마리아 홈카페</div>
         <div class="category-nav">
             <button class="category-btn active" onclick="filterMenu('all', this)">전체</button>
             <button class="category-btn" onclick="filterMenu('Coffee', this)">Coffee</button>
@@ -172,15 +150,27 @@
         <div class="menu-grid" id="menu-list"></div>
     </div>
 
-    <div class="cart-container">
-        <div style="font-size:20px; font-weight:bold; margin-bottom:10px;">장바구니</div>
-        <div class="cart-list" id="cart-list">
+    <div class="cart-overlay" onclick="toggleCart(false)"></div>
+
+    <div class="cart-container" id="cart-drawer">
+        <div class="mobile-cart-header">
+            <span style="font-size:1.2em; font-weight:bold;">장바구니</span>
+            <button class="mobile-cart-close-btn" onclick="toggleCart(false)">✕</button>
+        </div>
+
+        <div class="cart-title">장바구니</div> <div class="cart-list" id="cart-list">
              <div style="text-align:center; margin-top:50px; color:#999;">메뉴를 선택해주세요.</div>
         </div>
+        
         <div class="total-section">
             <div class="total-row"><span>총 수량</span><span id="total-count">0잔</span></div>
-            <button class="order-btn" onclick="order()">주문하기</button>
+            <button class="order-btn" onclick="order()">주문 전송</button>
         </div>
+    </div>
+
+    <div class="floating-bar" id="floating-bar" onclick="toggleCart(true)">
+        <span>장바구니 <span class="floating-badge" id="floating-count">0</span></span>
+        <span>주문하기 &gt;</span>
     </div>
 
     <div class="modal-overlay" id="option-modal">
@@ -195,8 +185,7 @@
     </div>
 
     <script>
-        // ⚠️ [중요] 여기에 아까 복사한 Firebase 설정을 붙여넣으세요!
-        // 예시: const firebaseConfig = { apiKey: "...", authDomain: "...", ... };
+        // ⚠️ [중요] Firebase 설정 복붙 구역
         const firebaseConfig = {
            apiKey: "AIzaSyBt4Lu0sLApn-83QMpnfLkjzxBchqcwRzQ",
   authDomain: "homecafe-15677.firebaseapp.com",
@@ -208,13 +197,12 @@
   measurementId: "G-M4W6D9S560"
         };
 
-        // Firebase 초기화
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
-        const db = firebase.database(); // 데이터베이스 사용 준비 완료
+        const db = firebase.database();
 
-        // --- 기존 로직 시작 ---
+        // --- 로직 시작 ---
         const menuData = [
             { category: "Coffee", name: "아메리카노", img: "americano.jpeg", options: ["HOT", "ICE"] },
             { category: "Coffee", name: "카페라떼", img: "cafelatte.avif", options: ["HOT", "ICE"] },
@@ -295,33 +283,63 @@
         function confirmOption() {
             if(!selectedMenu || !selectedOption) return;
             cart.push({ name: selectedMenu.name, option: selectedOption });
+            
             closeModal();
-            renderCart();
+            renderCart(); // 버튼 업데이트
+            
+            // 모바일에서 장바구니에 담으면 살짝 흔들리는 효과 (피드백)
+            const bar = document.getElementById('floating-bar');
+            bar.style.transform = "scale(1.1)";
+            setTimeout(() => bar.style.transform = "scale(1)", 200);
         }
 
         function removeFromCart(idx) {
             cart.splice(idx, 1);
             renderCart();
+            // 다 지우면 장바구니 닫기 (선택사항)
+            if(cart.length === 0 && window.innerWidth <= 768) {
+                // toggleCart(false); // 원하시면 주석 해제
+            }
         }
 
         function renderCart() {
             const list = document.getElementById('cart-list');
             list.innerHTML = '';
+            
+            // 1. 장바구니 리스트 업데이트
             if(cart.length === 0) {
-                list.innerHTML = '<div style="text-align:center; margin-top:50px; color:#999;">비어있음</div>';
+                list.innerHTML = '<div style="text-align:center; margin-top:50px; color:#999;">장바구니가 비어있습니다.</div>';
                 document.getElementById('total-count').innerText = "0잔";
+                document.getElementById('floating-count').innerText = "0";
                 return;
             }
+
             cart.forEach((item, idx) => {
                 const div = document.createElement('div');
                 div.className = 'cart-item';
                 div.innerHTML = `<div><div class="cart-item-name">${item.name}</div><div class="cart-item-option">[${item.option}]</div></div><button class="cart-btn-remove" onclick="removeFromCart(${idx})">삭제</button>`;
                 list.appendChild(div);
             });
-            document.getElementById('total-count').innerText = cart.length + "잔";
+            
+            // 2. 수량 업데이트
+            const count = cart.length + "잔";
+            document.getElementById('total-count').innerText = count;
+            document.getElementById('floating-count').innerText = cart.length;
         }
 
-        // ✨ 핵심: 파이어베이스로 주문 전송하기
+        // ✨ 모바일 장바구니 열고 닫기 함수
+        function toggleCart(isOpen) {
+            const drawer = document.getElementById('cart-drawer');
+            const overlay = document.querySelector('.cart-overlay');
+            if(isOpen) {
+                drawer.classList.add('open');
+                overlay.classList.add('show');
+            } else {
+                drawer.classList.remove('open');
+                overlay.classList.remove('show');
+            }
+        }
+
         function order() {
             if (cart.length === 0) { alert("장바구니가 비어있습니다!"); return; }
 
@@ -342,23 +360,20 @@
             const newOrder = {
                 time: timeString,
                 items: orderItems,
-                done: false // 조리 완료 여부
+                done: false
             };
 
-            // 🔥 서버(Realtime Database)에 데이터 보내기
             db.ref('orders').push(newOrder)
                 .then(() => {
-                    alert("주문이 주방으로 전송되었습니다! 👨‍🍳");
+                    alert("주문이 전송되었습니다! 🚀");
                     cart = [];
                     renderCart();
+                    toggleCart(false); // 주문 후 장바구니 닫기
                 })
                 .catch((error) => {
-                    alert("주문 전송 실패: " + error.message);
+                    alert("전송 실패: " + error.message);
                 });
         }
     </script>
 </body>
 </html>
-
-
-
