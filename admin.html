@@ -3,124 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>주방 주문 관리 (Kitchen Manager)</title>
+    <title>주방 주문 현황판 (Admin)</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <style>
         body { font-family: 'Apple SD Gothic Neo', sans-serif; margin: 0; padding: 0; background-color: #222; color: white; }
-        
-        /* 상단 헤더 */
         .header { background-color: #333; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ffaa00; }
         .title { font-size: 24px; font-weight: bold; }
         .status { font-size: 14px; color: #aaa; }
+        .order-container { padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
         
-        /* 주문 목록 영역 */
-        .order-container { padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
-        
-        /* 주문 티켓 디자인 */
-        .order-ticket { background-color: #fff; color: #333; border-radius: 10px; overflow: hidden; animation: slideIn 0.3s ease; }
+        .order-ticket { background-color: #fff; color: #333; border-radius: 10px; overflow: hidden; animation: slideIn 0.3s ease; border: 2px solid white; }
         .ticket-header { background-color: #ffaa00; padding: 10px 15px; font-weight: bold; display: flex; justify-content: space-between; }
-        .ticket-time { font-size: 0.8em; opacity: 0.8; }
-        
         .ticket-body { padding: 15px; min-height: 100px; }
-        .menu-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 1.1em; border-bottom: 1px dashed #ddd; padding-bottom: 5px; }
-        
+        .menu-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 1.2em; border-bottom: 1px dashed #ddd; padding-bottom: 5px; font-weight: bold; }
         .ticket-footer { padding: 10px; text-align: center; background-color: #eee; }
-        .btn-done { background-color: #222; color: white; border: none; padding: 10px 30px; border-radius: 5px; cursor: pointer; font-size: 1em; width: 100%; font-weight: bold; }
+        .btn-done { background-color: #222; color: white; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 1.1em; width: 100%; font-weight: bold; }
         .btn-done:hover { background-color: #000; }
-
         .empty-msg { grid-column: 1 / -1; text-align: center; margin-top: 100px; color: #555; font-size: 1.5em; }
 
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
-
     <div class="header">
         <div class="title">🔥 주방 주문 현황판</div>
-        <div class="status">실시간 대기중... <span id="clock">00:00:00</span></div>
+        <div class="status">실시간 연결됨 <span id="clock">00:00:00</span></div>
     </div>
 
     <div class="order-container" id="order-board">
-        <div class="empty-msg">현재 대기 중인 주문이 없습니다.</div>
+        <div class="empty-msg">대기 중인 주문이 없습니다.</div>
     </div>
 
     <script>
-        // 시계 기능
+        // ⚠️ [중요] cafe.html과 똑같은 내용을 여기에 붙여넣으세요!
+        const firebaseConfig = {
+           apiKey: "AIzaSyBt4Lu0sLApn-83QMpnfLkjzxBchqcwRzQ",
+  authDomain: "homecafe-15677.firebaseapp.com",
+  databaseURL: "https://homecafe-15677-default-rtdb.firebaseio.com",
+  projectId: "homecafe-15677",
+  storageBucket: "homecafe-15677.firebasestorage.app",
+  messagingSenderId: "884719230706",
+  appId: "1:884719230706:web:2f991c46fbdc8640ee7a6b",
+  measurementId: "G-M4W6D9S560"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        // 시계
         setInterval(() => {
-            const now = new Date();
-            document.getElementById('clock').innerText = now.toLocaleTimeString();
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString();
         }, 1000);
 
-        // 3초마다 새로운 주문이 있는지 확인 (폴링 방식)
-        setInterval(checkNewOrders, 3000);
+        // 🔥 서버에서 주문 실시간 감시 (새 주문이 오면 즉시 화면에 뜸)
+        const orderBoard = document.getElementById('order-board');
+        const ordersRef = db.ref('orders');
 
-        function checkNewOrders() {
-            // 로컬 저장소에서 'orders' 데이터를 가져옴
-            const storedOrders = localStorage.getItem('cafe_orders');
+        // 1. 새 주문이 추가될 때
+        ordersRef.on('child_added', (snapshot) => {
+            const order = snapshot.val();
+            const key = snapshot.key; // 주문의 고유 ID
+
+            // 빈 메시지 삭제
+            const emptyMsg = document.querySelector('.empty-msg');
+            if (emptyMsg) emptyMsg.remove();
+
+            createTicket(key, order);
+        });
+
+        // 2. 주문이 삭제될 때 (완료 처리 시)
+        ordersRef.on('child_removed', (snapshot) => {
+            const key = snapshot.key;
+            const ticket = document.getElementById(key);
+            if (ticket) ticket.remove();
             
-            if (storedOrders) {
-                const orders = JSON.parse(storedOrders);
-                renderOrders(orders);
-            } else {
-                renderOrders([]);
+            // 다 지워지면 빈 메시지 표시
+            if (orderBoard.children.length === 0) {
+                orderBoard.innerHTML = '<div class="empty-msg">대기 중인 주문이 없습니다.</div>';
             }
-        }
+        });
 
-        function renderOrders(orders) {
-            const board = document.getElementById('order-board');
-            
-            if (orders.length === 0) {
-                board.innerHTML = '<div class="empty-msg">현재 대기 중인 주문이 없습니다.</div>';
-                return;
-            }
-
-            board.innerHTML = ''; // 초기화
-
-            orders.forEach((order, index) => {
-                let menuHtml = '';
-                order.items.forEach(item => {
-                    menuHtml += `
-                        <div class="menu-row">
-                            <span>${item.name}</span>
-                            <span>${item.count}</span>
-                        </div>
-                    `;
-                });
-
-                const ticket = document.createElement('div');
-                ticket.className = 'order-ticket';
-                ticket.innerHTML = `
-                    <div class="ticket-header">
-                        <span>주문 #${index + 1}</span>
-                        <span class="ticket-time">${order.time}</span>
-                    </div>
-                    <div class="ticket-body">
-                        ${menuHtml}
-                    </div>
-                    <div class="ticket-footer">
-                        <div style="margin-bottom:5px; font-weight:bold;">총 ${order.totalPrice.toLocaleString()}원</div>
-                        <button class="btn-done" onclick="completeOrder(${index})">조리 완료</button>
+        function createTicket(key, order) {
+            let menuHtml = '';
+            order.items.forEach(item => {
+                menuHtml += `
+                    <div class="menu-row">
+                        <span>${item.name}</span>
+                        <span>${item.count}</span>
                     </div>
                 `;
-                board.appendChild(ticket);
             });
+
+            const ticket = document.createElement('div');
+            ticket.className = 'order-ticket';
+            ticket.id = key; // 나중에 삭제하기 위해 ID 부여
+            ticket.innerHTML = `
+                <div class="ticket-header">
+                    <span>주문접수</span>
+                    <span class="ticket-time">${order.time}</span>
+                </div>
+                <div class="ticket-body">
+                    ${menuHtml}
+                </div>
+                <div class="ticket-footer">
+                    <button class="btn-done" onclick="completeOrder('${key}')">조리 완료</button>
+                </div>
+            `;
+            orderBoard.appendChild(ticket);
         }
 
-        // '조리 완료' 버튼 누르면 삭제
-        function completeOrder(index) {
-            const storedOrders = localStorage.getItem('cafe_orders');
-            if (storedOrders) {
-                let orders = JSON.parse(storedOrders);
-                orders.splice(index, 1); // 해당 주문 삭제
-                localStorage.setItem('cafe_orders', JSON.stringify(orders)); // 저장소 업데이트
-                renderOrders(orders); // 화면 갱신
-            }
+        // 조리 완료 버튼 클릭 시 -> 서버에서 데이터 삭제
+        function completeOrder(key) {
+            db.ref('orders').child(key).remove()
+                .catch(error => alert("오류: " + error.message));
         }
-        
-        // 페이지 로드 시 즉시 확인
-        checkNewOrders();
     </script>
 </body>
 </html>
