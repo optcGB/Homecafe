@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마리아 카페 (Maria Cafe)</title>
+    <style>
+        /* 기본 스타일 */
+        body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; display: flex; height: 100vh; }
+        
+        /* 왼쪽: 메뉴 영역 */
+        .menu-container { flex: 2; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; }
+        .header-title { font-size: 24px; font-weight: bold; color: #4a3b32; margin-bottom: 20px; }
+
+        /* ✨ 카테고리 탭 스타일 추가 */
+        .category-nav { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; white-space: nowrap; }
+        /* 스크롤바 숨기기 */
+        .category-nav::-webkit-scrollbar { display: none; } 
+        .category-btn { 
+            padding: 10px 20px; 
+            border-radius: 25px; 
+            border: 1px solid #ddd; 
+            background-color: white; 
+            cursor: pointer; 
+            font-size: 1rem; 
+            color: #555;
+            transition: all 0.2s;
+        }
+        .category-btn:hover { background-color: #f0f0f0; }
+        .category-btn.active { 
+            background-color: #4a3b32; 
+            color: white; 
+            border-color: #4a3b32; 
+            font-weight: bold;
+        }
+
+        /* 메뉴 그리드 */
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }
+        .menu-item { background: white; border-radius: 15px; padding: 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s; border: 1px solid #eee; }
+        .menu-item:hover { transform: translateY(-5px); border-color: #d4a373; }
+        /* 이미지 플레이스홀더 색상 랜덤 효과를 위해 배경색 제거 */
+        .menu-img { width: 100%; height: 120px; border-radius: 10px; margin-bottom: 10px; object-fit: cover; background-color: #eee; }
+        .menu-name { font-weight: bold; margin-bottom: 5px; font-size: 1.05em; word-break: keep-all; }
+        .menu-price { color: #d4a373; font-weight: bold; }
+
+        /* 오른쪽: 장바구니 영역 */
+        .cart-container { flex: 1; background: white; padding: 20px; border-left: 1px solid #ddd; display: flex; flex-direction: column; max-width: 400px; }
+        .cart-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; border-bottom: 2px solid #4a3b32; padding-bottom: 10px; }
+        .cart-list { flex: 1; overflow-y: auto; margin-bottom: 20px; }
+        
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .cart-item-info { flex: 1; }
+        .cart-item-name { font-weight: bold; font-size: 0.9em; }
+        .cart-item-price { font-size: 0.85em; color: #888; }
+        .cart-btn-remove { background: #ff6b6b; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8em; }
+
+        .total-section { background: #f8f9fa; padding: 20px; border-radius: 10px; }
+        .total-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 1.2em; font-weight: bold; }
+        .order-btn { width: 100%; padding: 15px; background-color: #4a3b32; color: white; border: none; border-radius: 10px; font-size: 1.1em; cursor: pointer; font-weight: bold; }
+        .order-btn:hover { background-color: #352a24; }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .cart-container { max-width: none; border-left: none; border-top: 1px solid #ddd; height: 40%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="menu-container">
+        <div class="header-title">☕ 마리아 카페 메뉴</div>
+        
+        <div class="category-nav">
+            <button class="category-btn active" onclick="filterMenu('all', this)">전체</button>
+            <button class="category-btn" onclick="filterMenu('Coffee', this)">Coffee</button>
+            <button class="category-btn" onclick="filterMenu('Non Coffee', this)">Non Coffee</button>
+            <button class="category-btn" onclick="filterMenu('Ade', this)">Ade</button>
+            <button class="category-btn" onclick="filterMenu('Tea', this)">Tea</button>
+            <button class="category-btn" onclick="filterMenu('Smoothie', this)">Smoothie</button>
+        </div>
+
+        <div class="menu-grid" id="menu-list">
+            </div>
+    </div>
+
+    <div class="cart-container">
+        <div class="cart-title">장바구니</div>
+        <div class="cart-list" id="cart-list">
+            <div style="text-align:center; margin-top:50px; color:#999;">메뉴를 선택해주세요.</div>
+        </div>
+        
+        <div class="total-section">
+            <div class="total-row">
+                <span>총 결제금액</span>
+                <span id="total-price">0원</span>
+            </div>
+            <button class="order-btn" onclick="order()">주문하기</button>
+        </div>
+    </div>
+
+    <script>
+        // 1. 카테고리별 메뉴 데이터 설정 (가격은 임의로 설정했으니 수정하세요)
+        const menuData = [
+            // Coffee
+            { category: "Coffee", name: "아메리카노", price: 3000, img: "americano.jpeg" },
+            { category: "Coffee", name: "카페라떼", price: 3500, img: "cafelatte.avif" },
+            { category: "Coffee", name: "카페모카", price: 4000, img: "cafemoca.png" },
+            { category: "Coffee", name: "카푸치노", price: 3800, img: "capu.jpeg" },
+            
+            // Non Coffee
+            { category: "Non Coffee", name: "초당옥수수라떼", price: 4500, img: "conlatte.jpeg" },
+            { category: "Non Coffee", name: "핫초코", price: 4000, img: "hotchoco.jpeg" },
+
+            // Ade
+            { category: "Ade", name: "자몽에이드", price: 5000, img: "grapefruitade.jpg" },
+            { category: "Ade", name: "청귤에이드", price: 5000, img: "greenorageade.jpeg" },
+            { category: "Ade", name: "유자에이드", price: 5000, img: "yuzuade.jpg" },
+
+            // Tea (Tee)
+            { category: "Tea", name: "자몽허니 블랙티", price: 5500, img: "grfhoney.jpeg" },
+            { category: "Tea", name: "녹차", price: 3500, img: "greentee.jpeg" },
+            { category: "Tea", name: "홍차", price: 3500, img: "hongtee.jpeg" },
+            { category: "Tea", name: "유자차", price: 4000, img: "yuzutee.jpeg" },
+
+            // Smoothie
+            { category: "Smoothie", name: "초당옥수수스무디", price: 6000, img: "consmoo.jpeg" },
+            { category: "Smoothie", name: "초코스무디", price: 5500, img: "chocosmoo.jpeg" },
+            { category: "Smoothie", name: "딸기스무디", price: 5500, img: "stsmoo.jpeg" }
+        ];
+
+        let cart = []; 
+        let currentCategory = 'all'; // 현재 보고 있는 카테고리
+
+        const menuList = document.getElementById('menu-list');
+
+        // 초기 화면 렌더링
+        renderMenuItems('all');
+
+        // 2. 카테고리 필터링 함수
+        function filterMenu(category, btnElement) {
+            currentCategory = category;
+            
+            // 버튼 활성화 스타일 변경
+            const buttons = document.querySelectorAll('.category-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            if(btnElement) btnElement.classList.add('active');
+
+            renderMenuItems(category);
+        }
+
+        // 3. 메뉴 아이템 그리기
+        function renderMenuItems(category) {
+            menuList.innerHTML = ''; // 기존 목록 비우기
+
+            const filteredData = category === 'all' 
+                ? menuData 
+                : menuData.filter(item => item.category === category);
+
+            if (filteredData.length === 0) {
+                menuList.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:30px;">해당 카테고리에 메뉴가 없습니다.</div>';
+                return;
+            }
+
+            filteredData.forEach(menu => {
+                const item = document.createElement('div');
+                item.className = 'menu-item';
+                item.onclick = () => addToCart(menu);
+                item.innerHTML = `
+                    <img src="${menu.img}" class="menu-img" alt="${menu.name}">
+                    <div class="menu-name">${menu.name}</div>
+                    <div class="menu-price">${menu.price.toLocaleString()}원</div>
+                `;
+                menuList.appendChild(item);
+            });
+        }
+
+        // 4. 장바구니 기능 (이전과 동일)
+        function addToCart(menu) {
+            cart.push(menu);
+            renderCart();
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            renderCart();
+        }
+
+        function renderCart() {
+            const cartList = document.getElementById('cart-list');
+            const totalPriceEl = document.getElementById('total-price');
+            cartList.innerHTML = '';
+            let total = 0;
+
+            if (cart.length === 0) {
+                cartList.innerHTML = '<div style="text-align:center; margin-top:50px; color:#999;">메뉴를 선택해주세요.</div>';
+            } else {
+                cart.forEach((item, index) => {
+                    total += item.price;
+                    const div = document.createElement('div');
+                    div.className = 'cart-item';
+                    div.innerHTML = `
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-price">${item.price.toLocaleString()}원</div>
+                        </div>
+                        <button class="cart-btn-remove" onclick="removeFromCart(${index})">삭제</button>
+                    `;
+                    cartList.appendChild(div);
+                });
+            }
+            totalPriceEl.innerText = total.toLocaleString() + "원";
+        }
+
+        // 5. 주문 전송 (사장님 페이지 연동)
+        function order() {
+            if (cart.length === 0) {
+                alert("장바구니가 비어있습니다!");
+                return;
+            }
+            const now = new Date();
+            const timeString = now.getHours() + ":" + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+            
+            const summary = {};
+            let total = 0;
+            cart.forEach(item => {
+                summary[item.name] = (summary[item.name] || 0) + 1;
+                total += item.price;
+            });
+
+            const orderItems = [];
+            for (const [name, count] of Object.entries(summary)) {
+                orderItems.push({ name: name, count: count });
+            }
+
+            const newOrder = {
+                time: timeString,
+                items: orderItems,
+                totalPrice: total
+            };
+
+            let currentOrders = JSON.parse(localStorage.getItem('cafe_orders')) || [];
+            currentOrders.push(newOrder);
+            localStorage.setItem('cafe_orders', JSON.stringify(currentOrders));
+
+            alert("주문이 주방으로 전송되었습니다! 👨‍🍳");
+            cart = [];
+            renderCart();
+        }
+    </script>
+</body>
+</html>
