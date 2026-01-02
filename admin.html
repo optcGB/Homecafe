@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주방 주문 관리 (Kitchen Manager)</title>
+    <style>
+        body { font-family: 'Apple SD Gothic Neo', sans-serif; margin: 0; padding: 0; background-color: #222; color: white; }
+        
+        /* 상단 헤더 */
+        .header { background-color: #333; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ffaa00; }
+        .title { font-size: 24px; font-weight: bold; }
+        .status { font-size: 14px; color: #aaa; }
+        
+        /* 주문 목록 영역 */
+        .order-container { padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        
+        /* 주문 티켓 디자인 */
+        .order-ticket { background-color: #fff; color: #333; border-radius: 10px; overflow: hidden; animation: slideIn 0.3s ease; }
+        .ticket-header { background-color: #ffaa00; padding: 10px 15px; font-weight: bold; display: flex; justify-content: space-between; }
+        .ticket-time { font-size: 0.8em; opacity: 0.8; }
+        
+        .ticket-body { padding: 15px; min-height: 100px; }
+        .menu-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 1.1em; border-bottom: 1px dashed #ddd; padding-bottom: 5px; }
+        
+        .ticket-footer { padding: 10px; text-align: center; background-color: #eee; }
+        .btn-done { background-color: #222; color: white; border: none; padding: 10px 30px; border-radius: 5px; cursor: pointer; font-size: 1em; width: 100%; font-weight: bold; }
+        .btn-done:hover { background-color: #000; }
+
+        .empty-msg { grid-column: 1 / -1; text-align: center; margin-top: 100px; color: #555; font-size: 1.5em; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="title">🔥 주방 주문 현황판</div>
+        <div class="status">실시간 대기중... <span id="clock">00:00:00</span></div>
+    </div>
+
+    <div class="order-container" id="order-board">
+        <div class="empty-msg">현재 대기 중인 주문이 없습니다.</div>
+    </div>
+
+    <script>
+        // 시계 기능
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString();
+        }, 1000);
+
+        // 3초마다 새로운 주문이 있는지 확인 (폴링 방식)
+        setInterval(checkNewOrders, 3000);
+
+        function checkNewOrders() {
+            // 로컬 저장소에서 'orders' 데이터를 가져옴
+            const storedOrders = localStorage.getItem('cafe_orders');
+            
+            if (storedOrders) {
+                const orders = JSON.parse(storedOrders);
+                renderOrders(orders);
+            } else {
+                renderOrders([]);
+            }
+        }
+
+        function renderOrders(orders) {
+            const board = document.getElementById('order-board');
+            
+            if (orders.length === 0) {
+                board.innerHTML = '<div class="empty-msg">현재 대기 중인 주문이 없습니다.</div>';
+                return;
+            }
+
+            board.innerHTML = ''; // 초기화
+
+            orders.forEach((order, index) => {
+                let menuHtml = '';
+                order.items.forEach(item => {
+                    menuHtml += `
+                        <div class="menu-row">
+                            <span>${item.name}</span>
+                            <span>${item.count}</span>
+                        </div>
+                    `;
+                });
+
+                const ticket = document.createElement('div');
+                ticket.className = 'order-ticket';
+                ticket.innerHTML = `
+                    <div class="ticket-header">
+                        <span>주문 #${index + 1}</span>
+                        <span class="ticket-time">${order.time}</span>
+                    </div>
+                    <div class="ticket-body">
+                        ${menuHtml}
+                    </div>
+                    <div class="ticket-footer">
+                        <div style="margin-bottom:5px; font-weight:bold;">총 ${order.totalPrice.toLocaleString()}원</div>
+                        <button class="btn-done" onclick="completeOrder(${index})">조리 완료</button>
+                    </div>
+                `;
+                board.appendChild(ticket);
+            });
+        }
+
+        // '조리 완료' 버튼 누르면 삭제
+        function completeOrder(index) {
+            const storedOrders = localStorage.getItem('cafe_orders');
+            if (storedOrders) {
+                let orders = JSON.parse(storedOrders);
+                orders.splice(index, 1); // 해당 주문 삭제
+                localStorage.setItem('cafe_orders', JSON.stringify(orders)); // 저장소 업데이트
+                renderOrders(orders); // 화면 갱신
+            }
+        }
+        
+        // 페이지 로드 시 즉시 확인
+        checkNewOrders();
+    </script>
+</body>
+</html>
