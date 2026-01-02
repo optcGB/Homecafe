@@ -3,111 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>영광&마리아 카페 (Home Cafe)</title>
+    <title>마리아 카페 (Maria Cafe) - 이미지 적용</title>
     <style>
-        /* 레이아웃 고정 및 스크롤 설정 */
+        /* 기존 레이아웃 유지 */
         body { 
             font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            background-color: #f8f9fa; 
-            display: flex; 
-            height: 100vh; 
-            overflow: hidden; 
+            margin: 0; padding: 0; background-color: #f8f9fa; display: flex; height: 100vh; overflow: hidden; 
         }
+        .menu-container { flex: 2; padding: 20px; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; overflow: hidden; }
+        .header-title { font-size: 24px; font-weight: bold; color: #4a3b32; margin-bottom: 20px; flex-shrink: 0; }
         
-        /* 왼쪽: 메뉴 영역 */
-        .menu-container { 
-            flex: 2; 
-            padding: 20px; 
-            display: flex; 
-            flex-direction: column; 
-            height: 100vh; 
-            box-sizing: border-box; 
-            overflow: hidden; 
-        }
-
-        .header-title { 
-            font-size: 24px; 
-            font-weight: bold; 
-            color: #4a3b32; 
-            margin-bottom: 20px; 
-            flex-shrink: 0; 
-        }
-
-        /* 카테고리 탭 */
-        .category-nav { 
-            display: flex; 
-            gap: 10px; 
-            margin-bottom: 15px; 
-            overflow-x: auto; 
-            padding-bottom: 5px; 
-            white-space: nowrap; 
-            flex-shrink: 0; 
-            
-            scrollbar-width: thin;
-            scrollbar-color: #d4a373 #f0f0f0;
-        }
+        .category-nav { display: flex; gap: 10px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; white-space: nowrap; flex-shrink: 0; scrollbar-width: thin; scrollbar-color: #d4a373 #f0f0f0; }
         .category-nav::-webkit-scrollbar { height: 6px; }
         .category-nav::-webkit-scrollbar-thumb { background: #d4a373; border-radius: 10px; }
-
-        .category-btn { 
-            padding: 8px 18px; 
-            border-radius: 20px; 
-            border: 1px solid #ddd; 
-            background-color: white; 
-            cursor: pointer; 
-            font-size: 1rem; 
-            color: #555;
-            transition: all 0.2s;
-        }
+        .category-btn { padding: 8px 18px; border-radius: 20px; border: 1px solid #ddd; background-color: white; cursor: pointer; font-size: 1rem; color: #555; transition: all 0.2s; }
         .category-btn:hover { background-color: #f0f0f0; }
-        .category-btn.active { 
-            background-color: #4a3b32; 
-            color: white; 
-            border-color: #4a3b32; 
-            font-weight: bold;
-        }
+        .category-btn.active { background-color: #4a3b32; color: white; border-color: #4a3b32; font-weight: bold; }
 
-        /* 메뉴 리스트 */
-        .menu-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
-            gap: 20px; 
-            overflow-y: auto; 
-            flex-grow: 1; 
-            padding-right: 10px; 
-            padding-bottom: 20px;
-            align-items: start; 
-            align-content: start; 
-        }
-
-        /* 메뉴 아이템 디자인 (가격 제거로 심플해짐) */
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; overflow-y: auto; flex-grow: 1; padding-right: 10px; padding-bottom: 20px; align-items: start; align-content: start; }
         .menu-item { background: white; border-radius: 15px; padding: 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s; border: 1px solid #eee; }
         .menu-item:hover { transform: translateY(-5px); border-color: #d4a373; }
         
+        /* ✨ 이미지 스타일 수정 (꽉 차게 보이도록) */
         .menu-img { width: 100%; height: 130px; border-radius: 10px; margin-bottom: 10px; object-fit: cover; background-color: #eee; }
-        /* 메뉴 이름 스타일 조금 더 강조 */
+        
         .menu-name { font-weight: bold; margin-top: 5px; font-size: 1.1em; word-break: keep-all; color: #333; }
-        
-        /* 오른쪽: 장바구니 영역 */
-        .cart-container { 
-            flex: 1; 
-            background: white; 
-            padding: 20px; 
-            border-left: 1px solid #ddd; 
-            display: flex; 
-            flex-direction: column; 
-            max-width: 380px; 
-            height: 100vh; 
-            box-sizing: border-box; 
-        }
+
+        .cart-container { flex: 1; background: white; padding: 20px; border-left: 1px solid #ddd; display: flex; flex-direction: column; max-width: 380px; height: 100vh; box-sizing: border-box; }
         .cart-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; border-bottom: 2px solid #4a3b32; padding-bottom: 10px; flex-shrink: 0; }
-        
         .cart-list { flex: 1; overflow-y: auto; margin-bottom: 20px; }
         .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
         .cart-item-info { flex: 1; }
-        .cart-item-name { font-weight: bold; font-size: 1.0em; }
+        .cart-item-name { font-weight: bold; font-size: 1.0em; display: block; }
+        .cart-item-option { font-size: 0.85em; color: #666; margin-top: 2px; } 
         .cart-btn-remove { background: #ff6b6b; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8em; }
 
         .total-section { background: #f8f9fa; padding: 20px; border-radius: 10px; flex-shrink: 0; }
@@ -115,7 +43,34 @@
         .order-btn { width: 100%; padding: 15px; background-color: #4a3b32; color: white; border: none; border-radius: 10px; font-size: 1.1em; cursor: pointer; font-weight: bold; transition: background 0.3s; }
         .order-btn:hover { background-color: #352a24; }
 
-        /* 모바일 반응형 */
+        /* 팝업창(모달) 스타일 */
+        .modal-overlay {
+            display: none; 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); z-index: 1000;
+            justify-content: center; align-items: center;
+        }
+        .modal-box {
+            background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 350px; text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .modal-title { font-size: 1.5em; font-weight: bold; margin-bottom: 20px; color: #4a3b32; }
+        
+        .option-group { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
+        
+        .option-btn {
+            flex: 1; padding: 15px; border-radius: 10px; border: 2px solid #eee; background: #fff;
+            font-size: 1.1em; font-weight: bold; cursor: pointer; color: #aaa;
+        }
+        
+        .option-btn.hot.selected { border-color: #ff6b6b; color: #ff6b6b; background-color: #fff0f0; }
+        .option-btn.ice.selected { border-color: #4dabf7; color: #4dabf7; background-color: #f0f8ff; }
+
+        .modal-actions { display: flex; gap: 10px; }
+        .modal-btn-close { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc; background: #eee; cursor: pointer; font-weight: bold; }
+        .modal-btn-add { flex: 2; padding: 12px; border-radius: 8px; border: none; background: #4a3b32; color: white; cursor: pointer; font-weight: bold; }
+        .modal-btn-add:disabled { background: #ccc; cursor: not-allowed; }
+
         @media (max-width: 768px) {
             body { flex-direction: column; height: auto; overflow: auto; }
             .menu-container { height: 65vh; }
@@ -126,8 +81,7 @@
 <body>
 
     <div class="menu-container">
-        <div class="header-title">☕ 영광&마리아 홈카페</div>
-        
+        <div class="header-title">☕ 마리아 카페 (무료)</div>
         <div class="category-nav">
             <button class="category-btn active" onclick="filterMenu('all', this)">전체</button>
             <button class="category-btn" onclick="filterMenu('Coffee', this)">Coffee</button>
@@ -136,9 +90,7 @@
             <button class="category-btn" onclick="filterMenu('Tea', this)">Tea</button>
             <button class="category-btn" onclick="filterMenu('Smoothie', this)">Smoothie</button>
         </div>
-
-        <div class="menu-grid" id="menu-list">
-            </div>
+        <div class="menu-grid" id="menu-list"></div>
     </div>
 
     <div class="cart-container">
@@ -146,47 +98,62 @@
         <div class="cart-list" id="cart-list">
             <div style="text-align:center; margin-top:50px; color:#999;">메뉴를 선택해주세요.</div>
         </div>
-        
         <div class="total-section">
             <div class="total-row">
                 <span>총 주문 수량</span>
                 <span id="total-count">0잔</span>
             </div>
-            <button class="order-btn" onclick="order()">주문하기</button>
+            <button class="order-btn" onclick="order()">무료 주문하기</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="option-modal">
+        <div class="modal-box">
+            <div class="modal-title" id="modal-menu-name">메뉴 이름</div>
+            
+            <div class="option-group" id="modal-options">
+                </div>
+
+            <div class="modal-actions">
+                <button class="modal-btn-close" onclick="closeModal()">취소</button>
+                <button class="modal-btn-add" id="btn-add-cart" onclick="confirmOption()">담기</button>
+            </div>
         </div>
     </div>
 
     <script>
-        /* 메뉴 데이터 설정 (가격 정보를 모두 0으로 설정) */
+        /* ✨ 메뉴 데이터 수정됨 (요청하신 파일명 적용) */
         const menuData = [
-            // Coffee
-            { category: "Coffee", name: "아메리카노", price: 3000, img: "americano.jpeg" },
-            { category: "Coffee", name: "카페라떼", price: 3500, img: "cafelatte.avif" },
-            { category: "Coffee", name: "카페모카", price: 4000, img: "cafemoca.png" },
-            { category: "Coffee", name: "카푸치노", price: 3800, img: "capu.jpeg" },
+            // Coffee (HOT/ICE 선택 가능)
+            { category: "Coffee", name: "아메리카노", price: 0, img: "americano.jpeg", options: ["HOT", "ICE"] },
+            { category: "Coffee", name: "카페라떼", price: 0, img: "cafelatte.avif", options: ["HOT", "ICE"] },
+            { category: "Coffee", name: "카페모카", price: 0, img: "cafemoca.png", options: ["HOT", "ICE"] },
+            { category: "Coffee", name: "카푸치노", price: 0, img: "capu.jpeg", options: ["HOT", "ICE"] },
             
             // Non Coffee
-            { category: "Non Coffee", name: "초당옥수수라떼", price: 4500, img: "conlatte.jpeg" },
-            { category: "Non Coffee", name: "핫초코", price: 4000, img: "hotchoco.jpeg" },
+            { category: "Non Coffee", name: "초당옥수수라떼", price: 0, img: "conlatte.jpeg", options: ["HOT", "ICE"] },
+            { category: "Non Coffee", name: "핫초코", price: 0, img: "hotchoco.jpeg", options: ["HOT"] }, 
 
-            // Ade
-            { category: "Ade", name: "자몽에이드", price: 5000, img: "grapefruitade.jpg" },
-            { category: "Ade", name: "청귤에이드", price: 5000, img: "greenorageade.jpeg" },
-            { category: "Ade", name: "유자에이드", price: 5000, img: "yuzuade.jpg" },
+            // Ade (ICE Only)
+            { category: "Ade", name: "자몽에이드", price: 0, img: "grapefruitade.jpg", options: ["ICE"] },
+            { category: "Ade", name: "청귤에이드", price: 0, img: "greenorageade.jpeg", options: ["ICE"] },
+            { category: "Ade", name: "유자에이드", price: 0, img: "yuzuade.jpg", options: ["ICE"] },
 
             // Tea (Tee)
-            { category: "Tea", name: "자몽허니 블랙티", price: 5500, img: "grfhoney.jpeg" },
-            { category: "Tea", name: "녹차", price: 3500, img: "greentee.jpeg" },
-            { category: "Tea", name: "홍차", price: 3500, img: "hongtee.jpeg" },
-            { category: "Tea", name: "유자차", price: 4000, img: "yuzutee.jpeg" },
+            { category: "Tea", name: "자몽허니 블랙티", price: 0, img: "grfhoney.jpeg", options: ["HOT", "ICE"] },
+            { category: "Tea", name: "녹차", price: 0, img: "greentee.jpeg", options: ["HOT", "ICE"] },
+            { category: "Tea", name: "홍차", price: 0, img: "hongtee.jpeg", options: ["HOT", "ICE"] },
+            { category: "Tea", name: "유자차", price: 0, img: "yuzutee.jpeg", options: ["HOT", "ICE"] },
 
-            // Smoothie
-            { category: "Smoothie", name: "초당옥수수스무디", price: 6000, img: "consmoo.jpeg" },
-            { category: "Smoothie", name: "초코스무디", price: 5500, img: "chocosmoo.jpeg" },
-            { category: "Smoothie", name: "딸기스무디", price: 5500, img: "stsmoo.jpeg" }
+            // Smoothie (ICE Only)
+            { category: "Smoothie", name: "초당옥수수스무디", price: 0, img: "consmoo.jpeg", options: ["ICE"] },
+            { category: "Smoothie", name: "초코스무디", price: 0, img: "chocosmoo.jpeg", options: ["ICE"] },
+            { category: "Smoothie", name: "딸기스무디", price: 0, img: "stsmoo.jpeg", options: ["ICE"] }
         ];
 
         let cart = []; 
+        let selectedMenu = null; 
+        let selectedOption = null; 
 
         const menuList = document.getElementById('menu-list');
 
@@ -196,7 +163,6 @@
             const buttons = document.querySelectorAll('.category-btn');
             buttons.forEach(btn => btn.classList.remove('active'));
             if(btnElement) btnElement.classList.add('active');
-
             renderMenuItems(category);
         }
 
@@ -215,18 +181,68 @@
             filteredData.forEach(menu => {
                 const item = document.createElement('div');
                 item.className = 'menu-item';
-                item.onclick = () => addToCart(menu);
-                /* ✨ 가격 표시 부분 삭제됨 */
+                /* 클릭 시 팝업 열기 */
+                item.onclick = () => openModal(menu);
+                /* onerror: 이미지 파일 없을 때 회색박스로 대체 */
                 item.innerHTML = `
-                    <img src="${menu.img}" class="menu-img" alt="${menu.name}">
+                    <img src="${menu.img}" class="menu-img" alt="${menu.name}" onerror="this.src='https://via.placeholder.com/150/eee/999?text=No+Image'">
                     <div class="menu-name">${menu.name}</div>
                 `;
                 menuList.appendChild(item);
             });
         }
 
-        function addToCart(menu) {
-            cart.push(menu);
+        /* 팝업 로직 */
+        function openModal(menu) {
+            selectedMenu = menu;
+            selectedOption = null; 
+            
+            document.getElementById('modal-menu-name').innerText = menu.name;
+            const optionContainer = document.getElementById('modal-options');
+            optionContainer.innerHTML = ''; 
+            
+            const btnAdd = document.getElementById('btn-add-cart');
+            
+            menu.options.forEach(opt => {
+                const btn = document.createElement('div');
+                btn.className = `option-btn ${opt.toLowerCase()}`; 
+                btn.innerText = opt;
+                btn.onclick = () => selectOption(opt, btn);
+                optionContainer.appendChild(btn);
+            });
+
+            if (menu.options.length === 1) {
+                selectOption(menu.options[0], optionContainer.firstChild);
+            } else {
+                btnAdd.disabled = true; 
+                btnAdd.innerText = "옵션을 선택하세요";
+            }
+
+            document.getElementById('option-modal').style.display = 'flex';
+        }
+
+        function selectOption(opt, btnElement) {
+            selectedOption = opt;
+            const allBtns = document.querySelectorAll('.option-btn');
+            allBtns.forEach(b => b.classList.remove('selected'));
+            btnElement.classList.add('selected');
+            const btnAdd = document.getElementById('btn-add-cart');
+            btnAdd.disabled = false;
+            btnAdd.innerText = "장바구니 담기";
+        }
+
+        function closeModal() {
+            document.getElementById('option-modal').style.display = 'none';
+        }
+
+        function confirmOption() {
+            if (!selectedMenu || !selectedOption) return;
+            cart.push({
+                name: selectedMenu.name,
+                price: selectedMenu.price,
+                option: selectedOption 
+            });
+            closeModal();
             renderCart();
         }
 
@@ -237,7 +253,7 @@
 
         function renderCart() {
             const cartList = document.getElementById('cart-list');
-            const totalCountEl = document.getElementById('total-count'); // 가격 대신 수량 표시
+            const totalCountEl = document.getElementById('total-count');
             cartList.innerHTML = '';
             
             if (cart.length === 0) {
@@ -247,10 +263,10 @@
                 cart.forEach((item, index) => {
                     const div = document.createElement('div');
                     div.className = 'cart-item';
-                    /* ✨ 장바구니에서도 가격 표시 삭제 */
                     div.innerHTML = `
                         <div class="cart-item-info">
                             <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-option">[${item.option}]</div>
                         </div>
                         <button class="cart-btn-remove" onclick="removeFromCart(${index})">삭제</button>
                     `;
@@ -269,20 +285,20 @@
             const timeString = now.getHours() + ":" + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
             
             const summary = {};
-            // 가격 계산 로직 삭제, 개수만 셈
             cart.forEach(item => {
-                summary[item.name] = (summary[item.name] || 0) + 1;
+                const key = `${item.name} (${item.option})`;
+                summary[key] = (summary[key] || 0) + 1;
             });
 
             const orderItems = [];
-            for (const [name, count] of Object.entries(summary)) {
-                orderItems.push({ name: name, count: count });
+            for (const [nameWithOption, count] of Object.entries(summary)) {
+                orderItems.push({ name: nameWithOption, count: count });
             }
 
             const newOrder = {
                 time: timeString,
                 items: orderItems,
-                totalPrice: 0 // 항상 0원
+                totalPrice: 0 
             };
 
             let currentOrders = JSON.parse(localStorage.getItem('cafe_orders')) || [];
@@ -296,4 +312,3 @@
     </script>
 </body>
 </html>
-
