@@ -339,41 +339,68 @@
                 overlay.classList.remove('show');
             }
         }
+        const TELEGRAM_TOKEN = "8340070918:AAE9Wb9m1ifmiMIND7CwsgQQakCuuzQPFJA"; // 예: 7421...:AAH...
+        const TELEGRAM_CHAT_ID = "8128718693"; // 예: 12345678
+function order() {
+    if (cart.length === 0) { alert("장바구니가 비어있습니다!"); return; }
 
-        function order() {
-            if (cart.length === 0) { alert("장바구니가 비어있습니다!"); return; }
+    const now = new Date();
+    const timeString = now.getHours() + ":" + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
 
-            const now = new Date();
-            const timeString = now.getHours() + ":" + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+    const summary = {};
+    cart.forEach(item => {
+        const key = `${item.name} (${item.option})`;
+        summary[key] = (summary[key] || 0) + 1;
+    });
 
-            const summary = {};
-            cart.forEach(item => {
-                const key = `${item.name} (${item.option})`;
-                summary[key] = (summary[key] || 0) + 1;
-            });
+    // 텔레그램으로 보낼 메시지 만들기
+    let msg = `🔔 [새 주문 알림]\n시간: ${timeString}\n----------------\n`;
+    
+    const orderItems = [];
+    for (const [key, count] of Object.entries(summary)) {
+        orderItems.push({ name: key, count: count });
+        msg += `${key} x ${count}개\n`; // 메시지에 메뉴 추가
+    }
+    
+    msg += `----------------\n총 ${cart.length}잔 주문이 들어왔습니다!`;
 
-            const orderItems = [];
-            for (const [key, count] of Object.entries(summary)) {
-                orderItems.push({ name: key, count: count });
-            }
+    const newOrder = {
+        time: timeString,
+        items: orderItems,
+        done: false
+    };
 
-            const newOrder = {
-                time: timeString,
-                items: orderItems,
-                done: false
-            };
+    // 1. 파이어베이스(주방화면)로 전송
+    db.ref('orders').push(newOrder)
+        .then(() => {
+            // 2. 텔레그램(사장님 폰)으로 전송 (이게 핵심!)
+            sendTelegram(msg);
 
-            db.ref('orders').push(newOrder)
-                .then(() => {
-                    alert("주문이 전송되었습니다! 🚀");
-                    cart = [];
-                    renderCart();
-                    toggleCart(false); // 주문 후 장바구니 닫기
-                })
-                .catch((error) => {
-                    alert("전송 실패: " + error.message);
-                });
-        }
+            alert("주문이 전송되었습니다! 🚀");
+            cart = [];
+            renderCart();
+            toggleCart(false);
+        })
+        .catch((error) => {
+            alert("전송 실패: " + error.message);
+        });
+}
+
+// 텔레그램 전송 함수 (복사해서 스크립트 맨 아래에 붙여넣으세요)
+function sendTelegram(text) {
+    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+    const data = {
+        chat_id: TELEGRAM_CHAT_ID,
+        text: text
+    };
+
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    }).catch(err => console.error("주문알람 전송 실패:", err));
+}
     </script>
 </body>
 </html>
+
