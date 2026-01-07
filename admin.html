@@ -29,7 +29,7 @@
 <body>
     <div class="header">
         <div class="title">🔥 주방 주문 현황판</div>
-        <div class="status">화면을 한번 클릭해주세요 <span id="clock">00:00:00</span></div>
+        <div class="status"> <span id="clock">00:00:00</span></div>
     </div>
 
     <div class="order-container" id="order-board">
@@ -128,7 +128,7 @@
         // ✨ [추가된 기능] 알림 소리 재생 함수
         function playSound() {
             // '딩동' 소리 파일 (무료 효과음 URL)
-            const audio = new Audio('https://t1.daumcdn.net/cfile/tistory/99412B355CF6B93806');
+            const audio = new Audio('https://optcgb.github.io/Homecafe/ordersound.mp3');
             
             // 브라우저 정책상 사용자가 화면을 클릭하지 않으면 소리가 차단될 수 있음
             audio.play().catch(e => {
@@ -138,3 +138,4 @@
     </script>
 </body>
 </html>
+
