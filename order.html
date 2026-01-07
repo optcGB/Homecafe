@@ -195,9 +195,8 @@
         }
         const db = firebase.database();
 
-        // 텔레그램 설정 (사장님 전용)
-        const TELEGRAM_TOKEN = "8340070918:AAE9Wb9m1ifmiMIND7CwsgQQakCuuzQPFJA";
-        const TELEGRAM_CHAT_ID = "8128718693";
+        // ✨ 디스코드 웹후크 설정 (수정됨)
+        const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1458310830180405394/rNYazNBFL71T_pv3PLQQ1uw3SJlYekpPOyOcU1BFzs6YGSNgn0o7mI8p99XtIsNzqhDB";
 
         // 메뉴 데이터
         const menuData = [
@@ -239,7 +238,6 @@
                 const item = document.createElement('div');
                 item.className = 'menu-item';
                 item.onclick = () => openModal(menu);
-                // 이미지가 없을 때를 대비한 대체 이미지 (onerror) 추가
                 item.innerHTML = `<img src="${menu.img}" class="menu-img" onerror="this.src='https://via.placeholder.com/150/eee/999?text=No+Image'"><div class="menu-name">${menu.name}</div>`;
                 list.appendChild(item);
             });
@@ -345,15 +343,16 @@
                 summary[key] = (summary[key] || 0) + 1;
             });
 
-            let msg = `🔔 [새 주문 알림]\n시간: ${timeString}\n----------------\n`;
+            // 디스코드에 보낼 메시지 구성
+            let msg = `🔔 **[새 주문 알림]**\n🕒 시간: ${timeString}\n----------------\n`;
             
             const orderItems = [];
             for (const [key, count] of Object.entries(summary)) {
                 orderItems.push({ name: key, count: count });
-                msg += `${key} x ${count}개\n`; 
+                msg += `☕ ${key} x ${count}개\n`; 
             }
             
-            msg += `----------------\n총 ${cart.length}잔 주문이 들어왔습니다!`;
+            msg += `----------------\n📦 **총 ${cart.length}잔** 주문이 들어왔습니다!`;
 
             const newOrder = {
                 time: timeString,
@@ -364,8 +363,8 @@
             // 1. Firebase 전송
             db.ref('orders').push(newOrder)
                 .then(() => {
-                    // 2. 텔레그램 전송
-                    sendTelegram(msg);
+                    // 2. 디스코드 전송
+                    sendDiscord(msg);
 
                     alert("주문이 전송되었습니다! 🚀");
                     cart = [];
@@ -377,18 +376,19 @@
                 });
         }
 
-        function sendTelegram(text) {
-            const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+        // ✨ 디스코드 전송 함수 (새로 추가됨)
+        function sendDiscord(text) {
             const data = {
-                chat_id: TELEGRAM_CHAT_ID,
-                text: text
+                content: text,
+                username: "영광&마리아 홈카페", // 봇 이름
+                avatar_url: "https://cdn-icons-png.flaticon.com/512/751/751663.png" // 봇 아이콘 (커피 아이콘)
             };
 
-            fetch(url, {
+            fetch(DISCORD_WEBHOOK_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
-            }).catch(err => console.error("주문알람 전송 실패:", err));
+            }).catch(err => console.error("디스코드 전송 실패:", err));
         }
     </script>
 </body>
