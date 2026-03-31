@@ -15,7 +15,7 @@
         .order-container { padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
         
         .order-ticket { background-color: #fff; color: #333; border-radius: 10px; overflow: hidden; animation: slideIn 0.3s ease; border: 2px solid white; }
-        .ticket-header { background-color: #ffaa00; padding: 10px 15px; font-weight: bold; display: flex; justify-content: space-between; }
+        .ticket-header { background-color: #ffaa00; padding: 10px 15px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
         .ticket-body { padding: 15px; min-height: 100px; }
         .menu-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 1.2em; border-bottom: 1px dashed #ddd; padding-bottom: 5px; font-weight: bold; }
         .ticket-footer { padding: 10px; text-align: center; background-color: #eee; }
@@ -101,12 +101,15 @@
                 `;
             });
 
+            // ✨ 주문번호가 있으면 표시하고, 이전 데이터라 없으면 '주문접수'로 표시
+            const orderTitle = order.orderNumber ? `주문번호 #${order.orderNumber}` : '주문접수';
+
             const ticket = document.createElement('div');
             ticket.className = 'order-ticket';
             ticket.id = key; // 나중에 삭제하기 위해 ID 부여
             ticket.innerHTML = `
                 <div class="ticket-header">
-                    <span>주문접수</span>
+                    <span style="font-size: 1.1em;">${orderTitle}</span>
                     <span class="ticket-time">${order.time}</span>
                 </div>
                 <div class="ticket-body">
@@ -125,7 +128,7 @@
                 .catch(error => alert("오류: " + error.message));
         }
 
-        // ✨ [추가된 기능] 알림 소리 재생 함수
+        // 알림 소리 재생 함수
         function playSound() {
             // '딩동' 소리 파일 (무료 효과음 URL)
             const audio = new Audio('https://optcgb.github.io/Homecafe/ordersound.mp3');
@@ -138,4 +141,3 @@
     </script>
 </body>
 </html>
-
