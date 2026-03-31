@@ -16,7 +16,7 @@
             overflow: hidden; 
         }
 
-        /* 2. 메뉴 영역 (모바일에서 화면 꽉 채움) */
+        /* 2. 메뉴 영역 */
         .menu-container { 
             flex: 2; padding: 20px; display: flex; flex-direction: column; 
             height: 100%; box-sizing: border-box; overflow: hidden; min-height: 0;
@@ -36,7 +36,7 @@
         .menu-grid { 
             display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
             gap: 15px; overflow-y: auto; flex-grow: 1; 
-            padding-bottom: 100px; /* 하단 플로팅 버튼 여백 */
+            padding-bottom: 100px; 
             align-items: start; align-content: start; 
             -webkit-overflow-scrolling: touch;
         }
@@ -51,7 +51,6 @@
             max-width: 380px; height: 100%; box-sizing: border-box; z-index: 2000;
         }
         
-        /* 모바일용 헤더 */
         .mobile-cart-header { display: none; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
         .mobile-cart-close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 5px; }
 
@@ -59,7 +58,6 @@
         
         .cart-list { flex: 1; overflow-y: auto; margin-bottom: 15px; -webkit-overflow-scrolling: touch; padding-right: 5px; min-height: 0; }
         .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; flex-shrink: 0; min-height: 50px; }
-        .cart-item-info { flex: 1; padding-right: 10px; min-width: 0; }
         .cart-item-name { font-weight: bold; font-size: 1.0em; display: block; }
         .cart-item-option { font-size: 0.85em; color: #888; margin-top: 4px; display: block; } 
         .cart-btn-remove { background: #ff6b6b; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em; flex-shrink: 0; }
@@ -68,7 +66,7 @@
         .total-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 1.1em; font-weight: bold; color: #555; }
         .order-btn { width: 100%; padding: 15px; background-color: #4a3b32; color: white; border: none; border-radius: 10px; font-size: 1.1em; cursor: pointer; font-weight: bold; }
 
-        /* 4. 모바일 하단 플로팅 버튼 */
+        /* 4. 모바일 플로팅 버튼 */
         .floating-bar {
             display: none; 
             position: fixed; bottom: 20px; left: 20px; right: 20px;
@@ -81,7 +79,6 @@
             cursor: pointer;
             transition: transform 0.2s;
         }
-        .floating-bar:active { transform: scale(0.98); }
         .floating-badge { background: #ff6b6b; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.9em; margin-left: 5px; }
 
         /* 팝업 스타일 */
@@ -94,37 +91,26 @@
         .modal-actions { display: flex; gap: 10px; }
         .modal-btn-close { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc; background: #eee; cursor: pointer; font-weight: bold; }
         .modal-btn-add { flex: 2; padding: 12px; border-radius: 8px; border: none; background: #4a3b32; color: white; cursor: pointer; font-weight: bold; }
-        .modal-btn-add:disabled { background: #ccc; cursor: not-allowed; }
 
-        /* 5. 모바일 반응형 (슬라이딩 효과) */
         @media (max-width: 768px) {
             body { flex-direction: column; }
-            
-            .menu-container { height: 100%; flex: 1; border-bottom: none; padding-bottom: 0; }
-            .menu-grid { padding-bottom: 100px; } 
-
+            .menu-container { height: 100%; flex: 1; padding-bottom: 0; }
             .cart-container { 
                 position: fixed; bottom: 0; left: 0; right: 0;
-                height: 85vh; 
-                max-width: none;
+                height: 85vh; max-width: none;
                 border-radius: 20px 20px 0 0; 
-                box-shadow: 0 -5px 30px rgba(0,0,0,0.2);
                 transform: translateY(110%); 
                 transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1); 
-                padding-bottom: env(safe-area-inset-bottom); 
             }
-            
             .cart-container.open { transform: translateY(0); }
-            .cart-title { display: none; }
             .mobile-cart-header { display: flex; }
+            .cart-title { display: none; }
             .floating-bar { display: flex; padding-bottom: max(15px, env(safe-area-inset-bottom)); }
-            
             .cart-overlay {
                 display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
                 background: rgba(0,0,0,0.5); z-index: 1900;
-                opacity: 0; transition: opacity 0.3s;
             }
-            .cart-overlay.show { display: block; opacity: 1; }
+            .cart-overlay.show { display: block; }
         }
     </style>
 </head>
@@ -149,12 +135,10 @@
             <span style="font-size:1.2em; font-weight:bold;">장바구니</span>
             <button class="mobile-cart-close-btn" onclick="toggleCart(false)">✕</button>
         </div>
-
         <div class="cart-title">장바구니</div> 
         <div class="cart-list" id="cart-list">
              <div style="text-align:center; margin-top:50px; color:#999;">메뉴를 선택해주세요.</div>
         </div>
-        
         <div class="total-section">
             <div class="total-row"><span>총 수량</span><span id="total-count">0잔</span></div>
             <button class="order-btn" onclick="order()">주문 전송</button>
@@ -178,7 +162,6 @@
     </div>
 
     <script>
-        // Firebase 설정 (사장님 전용)
         const firebaseConfig = {
             apiKey: "AIzaSyBt4Lu0sLApn-83QMpnfLkjzxBchqcwRzQ",
             authDomain: "homecafe-15677.firebaseapp.com",
@@ -190,15 +173,10 @@
             measurementId: "G-M4W6D9S560"
         };
 
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-
-        // ✨ 디스코드 웹후크 설정 (수정됨)
         const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1458310830180405394/rNYazNBFL71T_pv3PLQQ1uw3SJlYekpPOyOcU1BFzs6YGSNgn0o7mI8p99XtIsNzqhDB";
 
-        // 메뉴 데이터
         const menuData = [
             { category: "Coffee", name: "아메리카노", img: "americano.jpeg", options: ["HOT", "ICE"] },
             { category: "Coffee", name: "카페라떼", img: "cafelatte.avif", options: ["HOT", "ICE"] },
@@ -260,17 +238,12 @@
                     document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
                     btn.classList.add('selected');
                     btnAdd.disabled = false;
-                    btnAdd.innerText = '담기';
                 };
                 container.appendChild(btn);
             });
 
-            if(menu.options.length === 1) {
-                container.firstChild.click(); 
-            } else {
-                btnAdd.disabled = true;
-                btnAdd.innerText = '옵션 선택';
-            }
+            if(menu.options.length === 1) container.firstChild.click(); 
+            else { btnAdd.disabled = true; }
             document.getElementById('option-modal').style.display = 'flex';
         }
 
@@ -279,10 +252,8 @@
         function confirmOption() {
             if(!selectedMenu || !selectedOption) return;
             cart.push({ name: selectedMenu.name, option: selectedOption });
-            
             closeModal();
             renderCart();
-            
             const bar = document.getElementById('floating-bar');
             bar.style.transform = "scale(1.1)";
             setTimeout(() => bar.style.transform = "scale(1)", 200);
@@ -291,106 +262,96 @@
         function removeFromCart(idx) {
             cart.splice(idx, 1);
             renderCart();
-            if(cart.length === 0 && window.innerWidth <= 768) {
-                // toggleCart(false); 
-            }
         }
 
         function renderCart() {
             const list = document.getElementById('cart-list');
             list.innerHTML = '';
-            
             if(cart.length === 0) {
                 list.innerHTML = '<div style="text-align:center; margin-top:50px; color:#999;">장바구니가 비어있습니다.</div>';
                 document.getElementById('total-count').innerText = "0잔";
                 document.getElementById('floating-count').innerText = "0";
                 return;
             }
-
             cart.forEach((item, idx) => {
                 const div = document.createElement('div');
                 div.className = 'cart-item';
                 div.innerHTML = `<div><div class="cart-item-name">${item.name}</div><div class="cart-item-option">[${item.option}]</div></div><button class="cart-btn-remove" onclick="removeFromCart(${idx})">삭제</button>`;
                 list.appendChild(div);
             });
-            
-            const count = cart.length + "잔";
-            document.getElementById('total-count').innerText = count;
+            document.getElementById('total-count').innerText = cart.length + "잔";
             document.getElementById('floating-count').innerText = cart.length;
         }
 
         function toggleCart(isOpen) {
-            const drawer = document.getElementById('cart-drawer');
-            const overlay = document.querySelector('.cart-overlay');
-            if(isOpen) {
-                drawer.classList.add('open');
-                overlay.classList.add('show');
-            } else {
-                drawer.classList.remove('open');
-                overlay.classList.remove('show');
-            }
+            document.getElementById('cart-drawer').classList.toggle('open', isOpen);
+            document.querySelector('.cart-overlay').classList.toggle('show', isOpen);
         }
 
+        // 주문 번호 포함 주문 함수
         function order() {
             if (cart.length === 0) { alert("장바구니가 비어있습니다!"); return; }
 
             const now = new Date();
+            const dateKey = now.toISOString().split('T')[0]; // YYYY-MM-DD (매일 자동 초기화 기준)
             const timeString = now.getHours() + ":" + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
 
-            const summary = {};
-            cart.forEach(item => {
-                const key = `${item.name} (${item.option})`;
-                summary[key] = (summary[key] || 0) + 1;
+            // Firebase 트랜잭션으로 주문번호 1씩 증가
+            const orderCountRef = db.ref('daily_stats/' + dateKey + '/last_number');
+            
+            orderCountRef.transaction((currentValue) => {
+                return (currentValue || 0) + 1;
+            }, (error, committed, snapshot) => {
+                if (error) {
+                    alert("주문 오류 발생: " + error.message);
+                } else if (committed) {
+                    const orderNum = snapshot.val(); // 오늘 몇 번째 주문인지 확정된 번호
+
+                    const summary = {};
+                    cart.forEach(item => {
+                        const key = `${item.name} (${item.option})`;
+                        summary[key] = (summary[key] || 0) + 1;
+                    });
+
+                    let msg = `🔔 **[새 주문 알림 - 번호: ${orderNum}]**\n🕒 시간: ${timeString}\n----------------\n`;
+                    const orderItems = [];
+                    for (const [key, count] of Object.entries(summary)) {
+                        orderItems.push({ name: key, count: count });
+                        msg += `☕ ${key} x ${count}개\n`; 
+                    }
+                    msg += `----------------\n📦 **총 ${cart.length}잔** / **주문번호: ${orderNum}번**`;
+
+                    const newOrder = {
+                        orderNumber: orderNum,
+                        time: timeString,
+                        items: orderItems,
+                        date: dateKey,
+                        done: false
+                    };
+
+                    db.ref('orders').push(newOrder).then(() => {
+                        sendDiscord(msg);
+                        alert(`주문이 완료되었습니다! 🚀\n\n오늘의 [ ${orderNum} ] 번째 주문자입니다.`);
+                        cart = [];
+                        renderCart();
+                        toggleCart(false);
+                    });
+                }
             });
-
-            // 디스코드에 보낼 메시지 구성
-            let msg = `🔔 **[새 주문 알림]**\n🕒 시간: ${timeString}\n----------------\n`;
-            
-            const orderItems = [];
-            for (const [key, count] of Object.entries(summary)) {
-                orderItems.push({ name: key, count: count });
-                msg += `☕ ${key} x ${count}개\n`; 
-            }
-            
-            msg += `----------------\n📦 **총 ${cart.length}잔** 주문이 들어왔습니다!`;
-
-            const newOrder = {
-                time: timeString,
-                items: orderItems,
-                done: false
-            };
-
-            // 1. Firebase 전송
-            db.ref('orders').push(newOrder)
-                .then(() => {
-                    // 2. 디스코드 전송
-                    sendDiscord(msg);
-
-                    alert("주문이 전송되었습니다! 🚀");
-                    cart = [];
-                    renderCart();
-                    toggleCart(false);
-                })
-                .catch((error) => {
-                    alert("전송 실패: " + error.message);
-                });
         }
 
-        // ✨ 디스코드 전송 함수 (새로 추가됨)
         function sendDiscord(text) {
             const data = {
                 content: text,
-                username: "영광&마리아 홈카페", // 봇 이름
-                avatar_url: "https://cdn-icons-png.flaticon.com/512/751/751663.png" // 봇 아이콘 (커피 아이콘)
+                username: "영광&마리아 홈카페",
+                avatar_url: "https://cdn-icons-png.flaticon.com/512/751/751663.png"
             };
-
             fetch(DISCORD_WEBHOOK_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
-            }).catch(err => console.error("디스코드 전송 실패:", err));
+            }).catch(err => console.error("디스코드 실패:", err));
         }
     </script>
 </body>
 </html>
-
