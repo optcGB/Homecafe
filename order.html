@@ -331,7 +331,7 @@
 
                     db.ref('orders').push(newOrder).then(() => {
                         sendDiscord(msg);
-                        alert(`주문이 완료되었습니다! 🚀\n\n오늘의 [ ${orderNum} ] 번째 주문자입니다.`);
+                        alert(`주문이 완료되었습니다! 🚀\n\n주문번호 [ ${orderNum} ] 번 입니다.`);
                         cart = [];
                         renderCart();
                         toggleCart(false);
